@@ -5,10 +5,14 @@ namespace ConsoleApp5
     public class HurdleHandler
     {
         private Dictionary<Tuple<int, int>, HurdleItem> _hurdleItems;
+
         public HurdleHandler() {
             _hurdleItems = new Dictionary<Tuple<int, int>, HurdleItem>();
         }
 
+        /*
+         * Give output if the given location has any hurdle on grid means obstacle
+         */
         public Tuple<int, int, char> CheckForHurdleChange(Tuple<int, int, char> currentLocation, Tuple<int, int, char> previousLocation)
         {
             var hurdleList = _hurdleItems.Where(x => x.Key.Item1 == currentLocation.Item1 && x.Key.Item2 == currentLocation.Item2).ToList();

@@ -65,9 +65,10 @@ namespace ConsoleApp5
                 if (currentTupleString.Count() != 3
                     || !int.TryParse(currentTupleString[0], out x)
                     || !int.TryParse(currentTupleString[1], out y)
-                    || !directions.Contains(currentTupleString[2].ToUpper().ToCharArray()[0]))
+                    || !directions.Contains(currentTupleString[2].ToUpper().ToCharArray()[0])
+                    || _hurdleHandler.hasValue(Tuple.Create(x, y) ))
                 {
-                    Console.WriteLine("Invalid Starting Point (Example: [1,2] and North Direction as 1 2 N): ");
+                    Console.WriteLine("Invalid Starting Point (Example: [1,2] and North Direction as 1 2 N) or Ther is a hurdle at that location ");
                     return;
                 }
                 Tuple<int, int, char> currentPosition = Tuple.Create(x, y, currentTupleString[2].ToUpper().ToCharArray()[0]); ;
@@ -245,7 +246,7 @@ namespace ConsoleApp5
             var hurdleGridDetails = _hurdleHandler.getList();
             var lastRobotConfig = robotConfigurations.LastOrDefault();
             int Id = lastRobotConfig == null ? 1 : lastRobotConfig.robotId + 1;
-            var config = new RobotConfiguration { robotId = Id, robotName = "Robot 1", hurdles = hurdles, xGridSize = xLength, yGridSize = yLength, hurdlesGrid = hurdleGridDetails };
+            var config = new RobotConfiguration { robotId = Id, robotName = "Robot " + Id, hurdles = hurdles, xGridSize = xLength, yGridSize = yLength, hurdlesGrid = hurdleGridDetails };
             robotConfigurations.Add(config);
             SaveConfiguration();
             return config;
