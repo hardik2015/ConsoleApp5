@@ -1,12 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace ConsoleApp5
 {
@@ -17,11 +10,48 @@ namespace ConsoleApp5
         private HurdleHandler _hurdleHandler;
         private bool _isTest;
 
+        /*
+         * Constructor
+         */
         public Startup(HurdleHandler hurdleHandler, bool isTest = false)
         {
             _hurdleHandler = hurdleHandler;
             _isTest = isTest;
         }
+
+        /*
+         * Program startup Point
+         */
+        public void StartProgram()
+        {
+            ReadConfiguration();
+            if (robotConfigurations == null)
+                robotConfigurations = new List<RobotConfiguration>();
+            Console.WriteLine("Select Robot Configuration for saved once or create new");
+            int i = 0;
+            if (robotConfigurations.Count > 0)
+            {
+                for (; i < robotConfigurations.Count; i++)
+                {
+                    Console.WriteLine((i + 1) + " - " + robotConfigurations[i].robotName);
+                }
+            }
+            Console.WriteLine((i + 1) + " - " + "Create New Robot Configuration");
+            int input = Int32.Parse(Console.ReadLine()) - 1; // as we added one for removing zero indexing
+            if (input == i)
+            {
+                RunRobot(NewConfiguration());
+            }
+            else
+            {
+                RunRobot(robotConfigurations[input]);
+            }
+
+        }
+
+        /*
+         * Robot traversal control
+         */
         public void RunRobot(RobotConfiguration robot)
         {
             _hurdleHandler.changeList(robot.hurdlesGrid);
@@ -46,7 +76,7 @@ namespace ConsoleApp5
                 var path = TraverseRobotOnGrid(robot.xGridSize, robot.yGridSize, pathInstructionString, currentPosition);
                 foreach (var element in path)
                 {
-                    Console.WriteLine(String.Format("Point : [{0}, {1}]\t Direction : {2}", element.Item1, element.Item2, element.Item3));
+                    Console.WriteLine(String.Format("Point : [{0}, {1}]\t Direction : {2}", element.Item1, element.Item2, ShortDirectionToFullForm(element.Item3)));
                 }
                 Console.WriteLine("Want to give another path sequence( Y for yes, Other as No) ");
                 if (!Console.ReadLine().ToUpper().Equals("Y"))
@@ -56,34 +86,12 @@ namespace ConsoleApp5
             }
         }
         
-        public void StartProgram()
-        {
-            ReadConfiguration();
-            if(robotConfigurations == null)
-                robotConfigurations = new List<RobotConfiguration> ();
-            Console.WriteLine("Select Robot Configuration");
-            int i = 0;
-            if (robotConfigurations.Count > 0)
-            {
-                for (; i < robotConfigurations.Count; i++)
-                {
-                    Console.WriteLine(i + " - " + robotConfigurations[i].robotName);
-                }
-            }
-            Console.WriteLine(i + " - " + "New Robot Configuration");
-            int input = Int32.Parse(Console.ReadLine());
-            if(input == i)
-            {
-                RunRobot(NewConfiguration());
-            }
-            else
-            {
-                RunRobot(robotConfigurations[input]);
-            }
-
-        }
+        /*
+         * Setup robot configuration
+         */
         public RobotConfiguration NewConfiguration()
         {
+            Console.WriteLine("---------- Start Robot Configuration Wizard ---------- ");
             Console.WriteLine("Grid size (give as 20X20 as 20 20) : ");
             string[] grid = Console.ReadLine().Split(" ");
             int xLength = 0;
@@ -93,8 +101,12 @@ namespace ConsoleApp5
                 && Int32.TryParse(grid[1], out yLength)))
             {
                 Console.WriteLine("Closing Program as Grid input is Invalid");
+                return null;
             }
-            Console.WriteLine("--- Start Robot Configuration Wizard --- ");
+
+
+            Console.WriteLine("---------- Start Hurdle Configuration Wizard ---------- ");
+            // adding hurdles
             List<Hurdle> hurdles = new List<Hurdle>();
             bool isShouldContinue = true;
             Console.WriteLine("Start adding Different Hurdles ");
@@ -132,7 +144,7 @@ namespace ConsoleApp5
                 }
                 else 
                 {
-                    Console.WriteLine("Are you sure you want to complete adding? (Y for yes anyother for N)");
+                    Console.WriteLine("Are you sure you want to complete adding hurdles? (Y for yes anyother for N)");
                     string input = Console.ReadLine();
                     if (input.Equals("Y"))
                     {
@@ -141,8 +153,96 @@ namespace ConsoleApp5
 
                 }
             }
-            var hurdleGridDetails = GetHurdleItemDetails(hurdles, xLength, yLength);
-            Console.WriteLine("--- End Robot Configuration Wizard --- ");
+
+            //adding hurdle items with parameters and into th grid
+            List<Hurdle> hurdleTypes = new List<Hurdle>();
+            Console.WriteLine("Add Hurdle Items");
+            bool shouldContinue = true;
+            while (shouldContinue)
+            {
+                Console.WriteLine("Select Hurdle From Below List : ");
+                int counter = 1;
+                hurdles.ForEach(x => Console.WriteLine(counter++ + " - " + x._hurdleName));
+                Console.WriteLine("Press any other key to Complete Adding.");
+                string hurdleItemSelect = Console.ReadLine();
+                int hurdleIndex;
+                int.TryParse(hurdleItemSelect, out hurdleIndex);
+                if (hurdleIndex == 0 || hurdleIndex > hurdles.Count)
+                {
+                    Console.WriteLine("Are you sure you want to complete adding? (Y for yes anyother for N)");
+                    string input = Console.ReadLine();
+                    if (input.ToUpper().Equals("Y"))
+                    {
+                        shouldContinue = false;
+                        continue;
+                    }
+                }
+                Hurdle selectedHurdle = hurdles[hurdleIndex - 1];
+                HurdleItem selectedHurdleItem = null;
+                if (selectedHurdle._hurdleType == HurdleType.TransferType)
+                {
+                    Console.WriteLine("Transfer Location (Format : [5, 6] as 5 6 ) : ");
+                    string[] transferLocation = Console.ReadLine().Split(" ");
+                    int xCord = 0, yCord = 0;
+                    if (transferLocation.Count() != 2
+                        || !Int32.TryParse(transferLocation[0], out xCord) || xCord > xLength
+                        || !Int32.TryParse(transferLocation[1], out yCord) || yCord > yLength)
+                    {
+                        Console.WriteLine("Invalid Format Default to [0, 0]: ");
+                        selectedHurdleItem = new HurdleItem(selectedHurdle, Tuple.Create(0, 0));
+                    }
+                    else
+                    {
+                        selectedHurdleItem = new HurdleItem(selectedHurdle, Tuple.Create(xCord, yCord));
+                    }
+                }
+                else if (selectedHurdle._hurdleType == HurdleType.RotationType)
+                {
+                    Console.WriteLine("Roltation Dgree (Format : 260 )(Default is 0) : ");
+                    string rotationDegree = Console.ReadLine();
+                    int degree = 0;
+                    if (Int32.TryParse(rotationDegree, out degree) && degree > 0)
+                    {
+                        selectedHurdleItem = new HurdleItem(selectedHurdle, degree);
+                    }
+                    else
+                    {
+                        selectedHurdleItem = new HurdleItem(selectedHurdle, 0);
+                    }
+                }
+                else
+                {
+                    selectedHurdleItem = new HurdleItem(selectedHurdle);
+                }
+                Console.WriteLine("Hurdle Location (Format : [5, 6] as 5 6 ): ");
+                string[] inputLocation = Console.ReadLine().Split(" ");
+                int x = 0, y = 0;
+                if (inputLocation.Count() == 2
+                    && Int32.TryParse(inputLocation[0], out x)
+                    && Int32.TryParse(inputLocation[1], out y)
+                    && x <= xLength && y <= yLength)
+                {
+                    if (_hurdleHandler.hasValue(Tuple.Create(x, y)))
+                    {
+                        Console.WriteLine("On that Posotion we have another hurdle so add to other place");
+                    }
+                    else
+                    {
+                        _hurdleHandler.addToList(Tuple.Create(x, y), selectedHurdleItem);
+                        if (selectedHurdle._hurdleType == HurdleType.TransferType)
+                            _hurdleHandler.addToList(selectedHurdleItem._transferCordinate, new HurdleItem(selectedHurdle, Tuple.Create(x, y)));
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Grid Position ");
+                }
+
+            }
+
+            Console.WriteLine("---------- End Hurdle Configuration Wizard ---------- ");
+            Console.WriteLine("---------- End Robot Configuration Wizard ---------- ");
+            var hurdleGridDetails = _hurdleHandler.getList();
             var lastRobotConfig = robotConfigurations.LastOrDefault();
             int Id = lastRobotConfig == null ? 1 : lastRobotConfig.robotId + 1;
             var config = new RobotConfiguration { robotId = Id, robotName = "Robot 1", hurdles = hurdles, xGridSize = xLength, yGridSize = yLength, hurdlesGrid = hurdleGridDetails };
@@ -150,33 +250,13 @@ namespace ConsoleApp5
             SaveConfiguration();
             return config;
         }
-        public void ReadConfiguration()
-        {
-            if (!File.Exists("configurations.json"))
-            {
-                File.Create("configurations.json");
-                robotConfigurations = new List<RobotConfiguration>();
-                return;
-            }
-            
-            string[] configurations = File.ReadAllLines("configurations.json");
-            string configuration = "";
-            foreach (var item in configurations)
-            {
-                configuration += item;
-            }
-            robotConfigurations = JsonConvert.DeserializeObject<List<RobotConfiguration>>(configuration);
-        }
 
-        public void SaveConfiguration()
-        {
-            string config = JsonConvert.SerializeObject(robotConfigurations);
-            File.WriteAllLines("configurations.json", [config]);
-        }
-
+        /*
+         * actual traversing done in this method
+         */
         public List<Tuple<int, int, char>> TraverseRobotOnGrid(int xLength, int yLength, string pathInstructionString, Tuple<int, int, char> currentPosition)
         {
-            if(_isTest)
+            if (_isTest)
             {
                 _hurdleHandler.changeList(robotConfigurations.First().hurdlesGrid);
             }
@@ -250,103 +330,54 @@ namespace ConsoleApp5
             return path;
         }
 
-        public Dictionary<Tuple<int, int>, HurdleItem> GetHurdleItemDetails(List<Hurdle> hurdles, int xLength, int yLength)
+        /*
+         * reading previous configuration from file configuration.json
+         */
+        public void ReadConfiguration()
         {
-            Console.WriteLine("--- Start Hurdle Configuration Wizard --- ");
-            List<Hurdle> hurdleTypes = new List<Hurdle>();
-            Console.WriteLine("Add Hurdle Items");
-            bool shouldContinue = true;
-            while (shouldContinue)
+            if (!File.Exists("configurations.json"))
             {
-                Console.WriteLine("Select Hurdle From Below List : ");
-                int counter = 1;
-                hurdles.ForEach(x => Console.WriteLine(counter++ + " - " + x._hurdleName ));
-                Console.WriteLine("Press any other key to Complete Adding.");
-                string hurdleItemSelect = Console.ReadLine();
-                int hurdleIndex;
-                int.TryParse(hurdleItemSelect, out hurdleIndex);
-                if(hurdleIndex == 0 || hurdleIndex > hurdles.Count)
-                {
-                    Console.WriteLine("Are you sure you want to complete adding? (Y for yes anyother for N)");
-                    string input = Console.ReadLine();
-                    if (input.ToUpper().Equals("Y"))
-                    {
-                        shouldContinue = false;
-                        continue;
-                    }
-                }
-                Hurdle selectedHurdle = hurdles[hurdleIndex - 1];
-                HurdleItem selectedHurdleItem = null;
-                if(selectedHurdle._hurdleType == HurdleType.TransferType)
-                {
-                    Console.WriteLine("Transfer Location (Format : [5, 6] as 5 6 ) : ");
-                    string[] transferLocation = Console.ReadLine().Split(" ");
-                    int xCord = 0, yCord = 0;
-                    if (transferLocation.Count() != 2
-                        || !Int32.TryParse(transferLocation[0], out xCord) || xCord > xLength
-                        || !Int32.TryParse(transferLocation[1], out yCord) || yCord > yLength)
-                    {
-                        Console.WriteLine("Invalid Format Default to [0, 0]: ");
-                        selectedHurdleItem = new HurdleItem(selectedHurdle, Tuple.Create(0, 0));
-                    }
-                    else
-                    {
-                        selectedHurdleItem = new HurdleItem(selectedHurdle, Tuple.Create(xCord, yCord));
-                    }
-                }
-                else if (selectedHurdle._hurdleType == HurdleType.RotationType)
-                {
-                    Console.WriteLine("Roltation Dgree (Format : 260 )(Default is 0) : ");
-                    string rotationDegree = Console.ReadLine();
-                    int degree = 0;
-                    if (Int32.TryParse(rotationDegree, out degree) && degree > 0)
-                    {
-                        selectedHurdleItem = new HurdleItem(selectedHurdle, degree);
-                    }
-                    else
-                    {
-                        selectedHurdleItem = new HurdleItem(selectedHurdle, 0);
-                    }
-                }
-                else
-                {
-                    selectedHurdleItem = new HurdleItem(selectedHurdle);
-                }
-                Console.WriteLine("Hurdle Location (Format : [5, 6] as 5 6 ): ");
-                string[] inputLocation = Console.ReadLine().Split(" ");
-                int x = 0, y = 0;
-                if (inputLocation.Count() == 2
-                    && Int32.TryParse(inputLocation[0], out x)
-                    && Int32.TryParse(inputLocation[1], out y)
-                    && x <= xLength && y <= yLength)
-                {
-                    if (_hurdleHandler.hasValue(Tuple.Create(x, y)))
-                    {
-                        Console.WriteLine("On that Posotion we have another hurdle so add to other place");
-                    }
-                    else
-                    {
-                        _hurdleHandler.addToList(Tuple.Create(x, y), selectedHurdleItem);
-                        if (selectedHurdle._hurdleType == HurdleType.TransferType)
-                            _hurdleHandler.addToList(selectedHurdleItem._transferCordinate, new HurdleItem(selectedHurdle, Tuple.Create(x, y)));
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Invalid Grid Position ");
-                }
-                
+                File.Create("configurations.json");
+                robotConfigurations = new List<RobotConfiguration>();
+                return;
             }
+            string[] configurations = File.ReadAllLines("configurations.json");
+            string configuration = "";
+            foreach (var item in configurations)
+            {
+                configuration += item;
+            }
+            robotConfigurations = JsonConvert.DeserializeObject<List<RobotConfiguration>>(configuration);
+        }
 
-            Console.WriteLine("--- End Hurdle Configuration Wizard --- ");
-            return _hurdleHandler.getList();
-            /*hurdleHandler.addToList(Tuple.Create(2, 2), hurdleItems[0]);
-            hurdleHandler.addToList(Tuple.Create(1, 1), hurdleItems[0]);
-            hurdleHandler.addToList(Tuple.Create(3, 1), hurdleItems[1]);
-            hurdleHandler.addToList(Tuple.Create(5, 3), hurdleItems[1]);
-            hurdleHandler.addToList(Tuple.Create(4, 5), hurdleItems[2]);
-            hurdleHandler.addToList(Tuple.Create(3, 3), hurdleItems[2]);
-            hurdleHandler.addToList(Tuple.Create(2, 4), hurdleItems[3]);*/
+        /*
+         * saving configuration in file configuration.json
+         */
+        public void SaveConfiguration()
+        {
+            string config = JsonConvert.SerializeObject(robotConfigurations);
+            File.WriteAllLines("configurations.json", [config]);
+        }
+
+
+        /*
+         * Short direction to Full diration string
+         */
+        private string ShortDirectionToFullForm(char direction)
+        {
+            switch (direction)
+            {
+                case 'N':
+                    return "North";
+                case 'S':
+                    return "South";
+                case 'W':
+                    return "West";
+                case 'E':
+                    return "East";
+                default:
+                    return "Undefiened";
+            }
         }
     }
 }
