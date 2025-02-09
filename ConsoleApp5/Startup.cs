@@ -15,10 +15,12 @@ namespace ConsoleApp5
 
         public List<RobotConfiguration> robotConfigurations;
         private HurdleHandler _hurdleHandler;
+        private bool _isTest;
 
-        public Startup(HurdleHandler hurdleHandler)
+        public Startup(HurdleHandler hurdleHandler, bool isTest = false)
         {
             _hurdleHandler = hurdleHandler;
+            _isTest = isTest;
         }
         public void RunRobot(RobotConfiguration robot)
         {
@@ -174,6 +176,10 @@ namespace ConsoleApp5
 
         public List<Tuple<int, int, char>> TraverseRobotOnGrid(int xLength, int yLength, string pathInstructionString, Tuple<int, int, char> currentPosition)
         {
+            if(_isTest)
+            {
+                _hurdleHandler.changeList(robotConfigurations.First().hurdlesGrid);
+            }
             Tuple<int, int, char> previousPosition = null;
             List<Tuple<int, int, char>> path = new List<Tuple<int, int, char>>();
             foreach (char s in pathInstructionString.ToCharArray())

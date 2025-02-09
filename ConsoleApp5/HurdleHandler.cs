@@ -36,17 +36,17 @@ namespace ConsoleApp5
                 {
                     switch (finalDiraction)
                     {
-                        case 'U':
-                            finalDiraction = 'W';
-                            break;
-                        case 'W':
-                            finalDiraction = 'S';
-                            break;
-                        case 'S':
+                        case 'N':
                             finalDiraction = 'E';
                             break;
+                        case 'S':
+                            finalDiraction = 'W';
+                            break;
                         case 'E':
-                            finalDiraction = 'U';
+                            finalDiraction = 'S';
+                            break;
+                        case 'W':
+                            finalDiraction = 'N';
                             break;
                     }
                 }
