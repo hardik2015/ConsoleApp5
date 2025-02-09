@@ -31,3 +31,12 @@ You can not able to put two hurdles at same location
 If User makes mistakes at time of creating new configuration then it is irreversible so please pay attention at that time
 
 User can not start from position which has hurdles there on grid
+
+
+## Environment 
+    .NET 8.0
+
+## Configuration
+    I have two configuration with hurdles added in configuration.json file 
+    Put that file as same location as exe file and then run you program you will se Robot 1 and Robot 2 configuration predefined
+    
