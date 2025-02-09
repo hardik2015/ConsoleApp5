@@ -79,7 +79,7 @@ namespace ConsoleApp5
                 {
                     Console.WriteLine(String.Format("Point : [{0}, {1}]\t Direction : {2}", element.Item1, element.Item2, ShortDirectionToFullForm(element.Item3)));
                 }
-                Console.WriteLine("Want to give another path sequence( Y for yes, Other as No) ");
+                Console.WriteLine("Want to give another path sequence( Y/y for yes, Other as No) ");
                 if (!Console.ReadLine().ToUpper().Equals("Y"))
                 {
                     isNextPathSquence = false;
@@ -145,9 +145,9 @@ namespace ConsoleApp5
                 }
                 else 
                 {
-                    Console.WriteLine("Are you sure you want to complete adding hurdles? (Y for yes anyother for N)");
+                    Console.WriteLine("Are you sure you want to complete adding hurdles? (Y/y for yes anyother for N)");
                     string input = Console.ReadLine();
-                    if (input.Equals("Y"))
+                    if (input.ToUpper().Equals("Y"))
                     {
                         isShouldContinue = false;
                     }
@@ -170,7 +170,7 @@ namespace ConsoleApp5
                 int.TryParse(hurdleItemSelect, out hurdleIndex);
                 if (hurdleIndex == 0 || hurdleIndex > hurdles.Count)
                 {
-                    Console.WriteLine("Are you sure you want to complete adding? (Y for yes anyother for N)");
+                    Console.WriteLine("Are you sure you want to complete adding? (Y/y for yes anyother for N)");
                     string input = Console.ReadLine();
                     if (input.ToUpper().Equals("Y"))
                     {
