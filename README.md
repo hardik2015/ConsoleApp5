@@ -1,10 +1,10 @@
 ## Documentation about Terms
 
 - Hurdle Types 
-    In this program we have 3 types of Hurdles(Obstacles)
+    In this program, we have 3 types of Hurdles(Obstacles)
     1 - Block Type : Robot cannot go to that location
-    2 - Transfer Type : User will give another location as perameter and where robot will be transfer if robot go to this location
-    3 - Rotating Type : User will give rotation degree like 90, 180, 270 as perameter and Robot direction will chnage by that degree
+    2 - Transfer Type : User will give another location as parameter and where robot will be transfer if robot go to this location
+    3 - Rotating Type : User will give rotation degree like 90, 180, 270 as parameter and Robot direction will change by that degree
 
 - Hurdle 
     As each robot have different terminology for Hurdles each hurdles have one of the above type and have its own name
@@ -14,7 +14,7 @@
     Each hurdle item has hurdle and it's parameter if any
 
 - Hurdle Grid
-    it is Dictonary of key as Hurdle Item Location and value as Hurdle
+    it is Dictionary of key as Hurdle Item Location and value as Hurdle
 
 - Robot Configuration
     Robot Configuration contains Hurdle Grid and Grid Size and Hurdles List
@@ -28,4 +28,6 @@ Default configuration for Hurdles in Test cases are shown in below Graph
 ## Restrictions
 You can not able to put two hurdles at same location
 
-If User makes mistakes at time of creationg new configuration then it is irreversible so please pay attention at that time
+If User makes mistakes at time of creating new configuration then it is irreversible so please pay attention at that time
+
+User can not start from position which has hurdles there on grid
